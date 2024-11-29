@@ -978,7 +978,6 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_audbuffersize); 
 
 	// m_menu.c
-	//CV_RegisterVar(&cv_compactscoreboard);
 	CV_RegisterVar(&cv_chatheight);
 	CV_RegisterVar(&cv_chatwidth);
 	CV_RegisterVar(&cv_chattime);
@@ -1090,20 +1089,12 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_controlperkey);
 	CV_RegisterVar(&cv_turnsmooth);
 
-	CV_RegisterVar(&cv_rumble[0]);
-	CV_RegisterVar(&cv_rumble[1]);
-	CV_RegisterVar(&cv_rumble[2]);
-	CV_RegisterVar(&cv_rumble[3]);
-
-	CV_RegisterVar(&cv_gamepadled[0]);
-	CV_RegisterVar(&cv_gamepadled[1]);
-	CV_RegisterVar(&cv_gamepadled[2]);
-	CV_RegisterVar(&cv_gamepadled[3]);
-
-	CV_RegisterVar(&cv_ledpowerup[0]);
-	CV_RegisterVar(&cv_ledpowerup[1]);
-	CV_RegisterVar(&cv_ledpowerup[2]);
-	CV_RegisterVar(&cv_ledpowerup[3]);
+	for (i = 0; i < MAXSPLITSCREENPLAYERS; i++)
+	{
+		CV_RegisterVar(&cv_rumble[i]);
+		CV_RegisterVar(&cv_gamepadled[i]);
+		CV_RegisterVar(&cv_ledpowerup[i]);
+	}
 
 	CV_RegisterVar(&cv_usemouse);
 	CV_RegisterVar(&cv_usemouse2);
@@ -1207,26 +1198,16 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_speed);
 	CV_RegisterVar(&cv_opflags);
 	CV_RegisterVar(&cv_mapthingnum);
-	//CV_RegisterVar(&cv_grid);
-	//CV_RegisterVar(&cv_snapto);
 
 	// add cheat commands
 	COM_AddCommand("noclip", Command_CheatNoClip_f);
 	COM_AddCommand("god", Command_CheatGod_f);
 	COM_AddCommand("notarget", Command_CheatNoTarget_f);
-	/*COM_AddCommand("getallemeralds", Command_Getallemeralds_f);
-	COM_AddCommand("resetemeralds", Command_Resetemeralds_f);
-	COM_AddCommand("setrings", Command_Setrings_f);
-	COM_AddCommand("setlives", Command_Setlives_f);
-	COM_AddCommand("setcontinues", Command_Setcontinues_f);*/
 	COM_AddCommand("devmode", Command_Devmode_f);
 	COM_AddCommand("savecheckpoint", Command_Savecheckpoint_f);
 	COM_AddCommand("scale", Command_Scale_f);
 	COM_AddCommand("gravflip", Command_Gravflip_f);
 	COM_AddCommand("hurtme", Command_Hurtme_f);
-	/*COM_AddCommand("jumptoaxis", Command_JumpToAxis_f);
-	COM_AddCommand("charability", Command_Charability_f);
-	COM_AddCommand("charspeed", Command_Charspeed_f);*/
 	COM_AddCommand("teleport", Command_Teleport_f);
 	COM_AddCommand("rteleport", Command_RTeleport_f);
 	COM_AddCommand("skynum", Command_Skynum_f);
@@ -2534,9 +2515,9 @@ static void Command_Playdemo_f(void)
 		return;
 	}
 
-	if (netgame)
+	if (gamestate == GS_LEVEL)
 	{
-		CONS_Printf(M_GetText("You can't play a demo while in a netgame.\n"));
+		CONS_Printf(M_GetText("You can't play a demo while in a game.\n"));
 		return;
 	}
 
@@ -2573,9 +2554,9 @@ static void Command_Timedemo_f(void)
 		return;
 	}
 
-	if (netgame)
+	if (gamestate == GS_LEVEL)
 	{
-		CONS_Printf(M_GetText("You can't play a demo while in a netgame.\n"));
+		CONS_Printf(M_GetText("You can't time a demo while in a game.\n"));
 		return;
 	}
 
@@ -3002,6 +2983,14 @@ static void Command_Map_f(void)
 	// G_TOLFlag handles both multiplayer gametype and ignores it for !multiplayer
 	else
 	{
+		if (!mapheaderinfo[newmapnum-1] || mapheaderinfo[newmapnum-1] == NULL)
+		{
+			CONS_Alert(CONS_WARNING, M_GetText("Invalid mapheaderinfo for Course %s (%s)\n"), realmapname, G_BuildMapName(newmapnum));
+			Z_Free(realmapname);
+			Z_Free(mapname);
+			return;
+		}
+
 		if (!(mapheaderinfo[newmapnum-1]->typeoflevel & G_TOLFlag(newgametype)))
 		{
 			CONS_Alert(CONS_WARNING, M_GetText("Course %s (%s) doesn't support %s mode!\n(Use -force to override)\n"), realmapname, G_BuildMapName(newmapnum),
@@ -4897,10 +4886,6 @@ static void Got_RequestAddfilecmd(UINT8 **cp, INT32 playernum)
 	boolean kick = false;
 	boolean toomany = false;
 	INT32 i,j;
-	serverinfo_pak *dummycheck = NULL;
-
-	// Shut the compiler up.
-	(void)dummycheck;
 
 	READSTRINGN(*cp, filename, 240);
 	READMEM(*cp, md5sum, 16);

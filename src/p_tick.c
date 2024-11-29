@@ -327,7 +327,7 @@ static inline void P_RunThinkers(void)
 	}
 }
 
-static inline void P_DeviceRumbleTick(void)
+static void P_DeviceRumbleTick(void)
 {
 	UINT8 i;
 
@@ -397,7 +397,7 @@ void P_RunChaseCameras(void)
 	}
 }
 
-static inline void P_RunQuakes(void)
+static void P_RunQuakes(void)
 {
 	fixed_t ir;
 
@@ -434,10 +434,21 @@ void P_Ticker(boolean run)
 {
 	INT32 i;
 
-	//Increment jointime even if paused.
+	// Increment jointime even if paused
 	for (i = 0; i < MAXPLAYERS; i++)
+	{
 		if (playeringame[i])
-			++players[i].jointime;
+		{
+			players[i].jointime++;
+		}
+	}
+
+	if (run)
+	{
+		// Update old view state BEFORE ticking so resetting
+		// the old interpolation state from game logic works.
+		R_UpdateViewInterpolation();
+	}
 
 	if (objectplacing)
 	{
@@ -468,9 +479,6 @@ void P_Ticker(boolean run)
 
 		return;
 	}
-
-	for (i = 0; i <= splitscreen; i++)
-		postimgtype[i] = postimg_none;
 
 	P_MapStart();
 
@@ -672,7 +680,6 @@ void P_Ticker(boolean run)
 	if (run)
 	{
 		R_UpdateLevelInterpolators();
-		R_UpdateViewInterpolation();
 
 		// Hack: ensure newview is assigned every tic.
 		// Ensures view interpolation is T-1 to T in poor network conditions
@@ -707,9 +714,6 @@ void P_PreTicker(INT32 frames)
 {
 	INT32 i;
 	ticcmd_t temptic;
-
-	for (i = 0; i <= splitscreen; i++)
-		postimgtype[i] = postimg_none;
 
 	hook_defrosting = frames;
 

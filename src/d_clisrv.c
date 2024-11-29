@@ -1228,7 +1228,7 @@ static inline void CL_DrawConnectionStatus(void)
 
 		//Draw bottom box
 		M_DrawTextBox(BASEVIDWIDTH/2-128-8, BASEVIDHEIGHT-24-8, 32, 1);
-		V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24-24, V_YELLOWMAP, "Press ESC to abort");
+		V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24-24, V_YELLOWMAP|MENUCAPS, "Press ESC to abort");
 
 		for (i = 0; i < 16; ++i)
 			V_DrawFill((BASEVIDWIDTH/2-128) + (i * 16), BASEVIDHEIGHT-24, 16, 8, palstart + ((animtime - i) & 15));
@@ -1275,7 +1275,7 @@ static inline void CL_DrawConnectionStatus(void)
 				cltext = M_GetText("Connecting to server...");
 				break;
 		}
-		V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24-32, V_YELLOWMAP, cltext);
+		V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24-32, V_YELLOWMAP|MENUCAPS, cltext);
 	}
 	else
 	{
@@ -1285,7 +1285,7 @@ static inline void CL_DrawConnectionStatus(void)
 			INT32 checkednum = 0;
 			INT32 i;
 
-			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24-24, V_YELLOWMAP, "Press ESC to abort");
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24-24, V_YELLOWMAP|MENUCAPS, "Press ESC to abort");
 
 			//ima just count files here
 			for (i = 0; i < fileneedednum; i++)
@@ -1293,12 +1293,12 @@ static inline void CL_DrawConnectionStatus(void)
 					checkednum++;
 
 			// Loading progress
-			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24-32, V_YELLOWMAP, "Checking server addons...");
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24-32, V_YELLOWMAP|MENUCAPS, "Checking server addons...");
 			totalfileslength = (INT32)((checkednum/(double)(fileneedednum)) * 256);
 			M_DrawTextBox(BASEVIDWIDTH/2-128-8, BASEVIDHEIGHT-24-8, 32, 1);
 			V_DrawFill(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, 256, 8, 175);
 			V_DrawFill(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, totalfileslength, 8, 160);
-			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24, V_20TRANS|V_MONOSPACE,
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24, V_20TRANS|V_MONOSPACE|MENUCAPS,
 				va(" %2u/%2u Files",checkednum,fileneedednum));
 		}
 		else if (cl_mode == CL_LOADFILES)
@@ -1307,7 +1307,7 @@ static inline void CL_DrawConnectionStatus(void)
 			INT32 loadcompletednum = 0;
 			INT32 i;
 
-			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24-24, V_YELLOWMAP, "Press ESC to abort");
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24-24, V_YELLOWMAP|MENUCAPS, "Press ESC to abort");
 
 			//ima just count files here
 			for (i = 0; i < fileneedednum; i++)
@@ -1315,12 +1315,12 @@ static inline void CL_DrawConnectionStatus(void)
 					loadcompletednum++;
 
 			// Loading progress
-			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24-32, V_YELLOWMAP, "Loading server addons...");
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24-32, V_YELLOWMAP|MENUCAPS, "Loading server addons...");
 			totalfileslength = (INT32)((loadcompletednum/(double)(fileneedednum)) * 256);
 			M_DrawTextBox(BASEVIDWIDTH/2-128-8, BASEVIDHEIGHT-24-8, 32, 1);
 			V_DrawFill(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, 256, 8, 175);
 			V_DrawFill(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, totalfileslength, 8, 160);
-			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24, V_20TRANS|V_MONOSPACE,
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24, V_20TRANS|V_MONOSPACE|MENUCAPS,
 				va(" %2u/%2u Files",loadcompletednum,fileneedednum));
 		}
 		else if (lastfilenum != -1)
@@ -1334,7 +1334,7 @@ static inline void CL_DrawConnectionStatus(void)
 
 			// Draw the bottom box.
 			M_DrawTextBox(BASEVIDWIDTH/2-128-8, BASEVIDHEIGHT-58-8, 32, 1);
-			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-58-14, V_YELLOWMAP, "Press ESC to abort");
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-58-14, V_YELLOWMAP|MENUCAPS, "Press ESC to abort");
 
 			Net_GetNetStat();
 			dldlength = (INT32)((file->currentsize/(double)file->totalsize) * 256);
@@ -1359,17 +1359,17 @@ static inline void CL_DrawConnectionStatus(void)
 				strncpy(tempname, filename, sizeof(tempname)-1);
 			}
 #ifdef HAVE_CURL
-			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-58-30, 0,
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-58-30, MENUCAPS,
 				va(M_GetText("%s downloading"), ((cl_mode == CL_DOWNLOADHTTPFILES) ? "\x82""HTTP" : "\x85""Direct")));
 #else
-			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-58-30, 0,
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-58-30, MENUCAPS,
 								 va(M_GetText("%s downloading"),("\x85""Direct")));
 #endif
-			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-58-22, V_YELLOWMAP,
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-58-22, V_YELLOWMAP|MENUCAPS,
 				va(M_GetText("\"%s\""), tempname));
-			V_DrawString(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-58, V_20TRANS|V_MONOSPACE,
+			V_DrawString(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-58, V_20TRANS|V_MONOSPACE|MENUCAPS,
 				va(" %4uK/%4uK",fileneeded[lastfilenum].currentsize>>10,file->totalsize>>10));
-			V_DrawRightAlignedString(BASEVIDWIDTH/2+128, BASEVIDHEIGHT-58, V_20TRANS|V_MONOSPACE,
+			V_DrawRightAlignedString(BASEVIDWIDTH/2+128, BASEVIDHEIGHT-58, V_20TRANS|V_MONOSPACE|MENUCAPS,
 				va("%3.1fK/s ", ((double)getbps)/1024));
 
 			// Download progress
@@ -1379,20 +1379,20 @@ static inline void CL_DrawConnectionStatus(void)
 			else
 				totaldldsize = downloadcompletedsize;
 
-			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24-14, V_YELLOWMAP, "Overall Download Progress");
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24-14, V_YELLOWMAP|MENUCAPS, "Overall Download Progress");
 			totalfileslength = (INT32)((totaldldsize/(double)totalfilesrequestedsize) * 256);
 			M_DrawTextBox(BASEVIDWIDTH/2-128-8, BASEVIDHEIGHT-24-8, 32, 1);
 			V_DrawFill(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, 256, 8, 175);
 			V_DrawFill(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, totalfileslength, 8, 160);
 
 			if (totalfilesrequestedsize>>20 >= 10) //display in MB if over 10MB
-				V_DrawString(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, V_20TRANS|V_MONOSPACE,
+				V_DrawString(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, V_20TRANS|V_MONOSPACE|MENUCAPS,
 					va(" %4uM/%4uM",totaldldsize>>20,totalfilesrequestedsize>>20));
 			else
-				V_DrawString(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, V_20TRANS|V_MONOSPACE,
+				V_DrawString(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-24, V_20TRANS|V_MONOSPACE|MENUCAPS,
 					va(" %4uK/%4uK",totaldldsize>>10,totalfilesrequestedsize>>10));
 
-			V_DrawRightAlignedString(BASEVIDWIDTH/2+128, BASEVIDHEIGHT-24, V_20TRANS|V_MONOSPACE,
+			V_DrawRightAlignedString(BASEVIDWIDTH/2+128, BASEVIDHEIGHT-24, V_20TRANS|V_MONOSPACE|MENUCAPS,
 					va("%2u/%2u Files ",downloadcompletednum,totalfilesrequestednum));
 		}
 		else
@@ -1403,12 +1403,12 @@ static inline void CL_DrawConnectionStatus(void)
 
 			//Draw bottom box
 			M_DrawTextBox(BASEVIDWIDTH/2-128-8, BASEVIDHEIGHT-24-8, 32, 1);
-			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24-24, V_YELLOWMAP, "Press ESC to abort");
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24-24, V_YELLOWMAP|MENUCAPS, "Press ESC to abort");
 
 			for (i = 0; i < 16; ++i)
 				V_DrawFill((BASEVIDWIDTH/2-128) + (i * 16), BASEVIDHEIGHT-24, 16, 8, palstart + ((animtime - i) & 15));
 
-			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24-32, V_YELLOWMAP,
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-24-32, V_YELLOWMAP|MENUCAPS,
 				M_GetText("Waiting to download files..."));
 		}
 	}
@@ -1796,7 +1796,7 @@ static boolean SV_ResendingSavegameToAnyone(void)
 	INT32 i;
 
 	for (i = 0; i < MAXNETNODES; i++)
-		if (resendingsavegame[i])
+		if (nodeingame[i] && resendingsavegame[i])
 			return true;
 	return false;
 }
@@ -3240,7 +3240,7 @@ void CL_RemovePlayer(INT32 playernum, INT32 reason)
 
 	demo_extradata[playernum] |= DXD_PLAYSTATE;
 
-	if (server && !demo.playback)
+	if (server && !demo.playback && playernode[playernum] != UINT8_MAX)
 	{
 		INT32 node = playernode[playernum];
 		//playerpernode[node] = 0; // It'd be better to remove them all at once, but ghosting happened, so continue to let CL_RemovePlayer do it one-by-one
@@ -3249,13 +3249,7 @@ void CL_RemovePlayer(INT32 playernum, INT32 reason)
 		{
 			SV_InitResynchVars(node); // If a resynch was in progress, well, it no longer needs to be.
 
-			nodeingame[node] = false;
-#ifdef SATURNPAK
-			is_client_saturn[node] = false;
-#endif
-#ifdef SATURNSYNCH
-			can_receive_gamestate[node] = false;
-#endif
+			nodeingame[node] = false;  // do we even need this?
 			Net_CloseConnection(node);
 			ResetNode(node);
 		}
@@ -3361,9 +3355,6 @@ void CL_Reset(void)
 	if (servernode > 0 && servernode < MAXNETNODES)
 	{
 		nodeingame[(UINT8)servernode] = false;
-#ifdef SATURNPAK
-		is_client_saturn[(UINT8)servernode] = false;
-#endif
 		Net_CloseConnection(servernode);
 	}
 	D_CloseConnection(); // netgame = false
@@ -3708,16 +3699,13 @@ static void Command_Kick(void)
 		if (pn == -1 || pn == 0)
 			return;
 
-		if (server)
+		// Special case if we are trying to kick a player who is downloading the game state:
+		// trigger a timeout instead of kicking them, because a kick would only
+		// take effect after they have finished downloading
+		if (server && playernode[pn] != UINT8_MAX && sendingsavegame[playernode[pn]])
 		{
-			// Special case if we are trying to kick a player who is downloading the game state:
-			// trigger a timeout instead of kicking them, because a kick would only
-			// take effect after they have finished downloading
-			if (sendingsavegame[playernode[pn]])
-			{
-				Net_ConnectionTimeout(playernode[pn]);
-				return;
-			}
+			Net_ConnectionTimeout(playernode[pn]);
+			return;
 		}
 
 		WRITESINT8(p, pn);
@@ -3773,7 +3761,7 @@ static void Got_KickCmd(UINT8 **p, INT32 playernum)
 
 	// Is playernum authorized to make this kick?
 	if (playernum != serverplayer && !IsPlayerAdmin(playernum)
-		/*&& !(playerpernode[playernode[playernum]] == 2
+		/*&& !(playernode[playernum] != UINT8_MAX && playerpernode[playernode[playernum]] == 2
 		//&& nodetoplayer2[playernode[playernum]] == pnum)*/)
 	{
 		// We received a kick command from someone who isn't the
@@ -4275,13 +4263,19 @@ void SV_ResetServer(void)
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
 		LUA_InvalidatePlayer(&players[i]);
-		playeringame[i] = false;
-		playernode[i] = UINT8_MAX;
 		sprintf(player_names[i], "Player %d", i + 1);
-		adminplayers[i] = -1; // Populate the entire adminplayers array with -1.
 	}
 
+	memset(playeringame, false, sizeof playeringame);
+	memset(playernode, UINT8_MAX, sizeof playernode);
+
+	ClearAdminPlayers(); // Populate the entire adminplayers array with -1.
+
 	memset(player_name_changes, 0, sizeof player_name_changes);
+
+	pingmeasurecount = 1;
+	memset(realpingtable, 0, sizeof realpingtable);
+	memset(playerpingtable, 0, sizeof playerpingtable);
 
 	mynode = 0;
 	cl_packetmissed = false;
@@ -4464,7 +4458,7 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum)
 	if (server && multiplayer && motd[0] != '\0')
 		COM_BufAddText(va("sayto %d %s\n", newplayernum, motd));
 
-	D_AddAutoloadFiles();
+	D_AddPostloadFiles();
 
 	LUAh_PlayerJoin(newplayernum);
 
@@ -4551,7 +4545,9 @@ static boolean SV_AddWaitingPlayers(void)
 			buf[0] = (UINT8)node;
 			buf[1] = newplayernum;
 			if (playerpernode[node] < 1)
+			{
 				nodetoplayer[node] = newplayernum;
+			}
 			else if (playerpernode[node] < 2)
 			{
 				nodetoplayer2[node] = newplayernum;
@@ -5391,11 +5387,10 @@ static void HandlePacketFromPlayer(SINT8 node)
 			}
 
 			// Check player consistancy during the level
-			if (((!can_receive_gamestate[node]) && realstart <= gametic && realstart > gametic - TICQUEUE+1 && gamestate == GS_LEVEL
-				&& consistancy[realstart%TICQUEUE] != SHORT(netbuffer->u.clientpak.consistancy)) || (can_receive_gamestate[node] && realstart <= gametic && realstart + TICQUEUE - 1 > gametic && gamestate == GS_LEVEL
+			if (gamestate == GS_LEVEL
+				&& (realstart > gametic - TICQUEUE+1 && realstart <= gametic)
 				&& consistancy[realstart%TICQUEUE] != SHORT(netbuffer->u.clientpak.consistancy)
-				&& !resendingsavegame[node] && savegameresendcooldown[node] <= I_GetTime()
-				&& !SV_ResendingSavegameToAnyone()))
+				&& (!can_receive_gamestate[node] || (!resendingsavegame[node] && savegameresendcooldown[node] <= I_GetTime() && !SV_ResendingSavegameToAnyone())))
 			{
 //#ifndef SATURNPAK  // lug: keep this behaviour for v7.1 atleast
 				// we need to send this so the client can tell us if it can receive the savegame
@@ -5607,12 +5602,6 @@ static void HandlePacketFromPlayer(SINT8 node)
 			}
 			Net_CloseConnection(node);
 			nodeingame[node] = false;
-#ifdef SATURNPAK
-			is_client_saturn[node] = false;
-#endif
-#ifdef SATURNSYNCH
-			can_receive_gamestate[node] = false;
-#endif
 			break;
 // -------------------------------------------- CLIENT RECEIVE ----------
 		case PT_RESYNCHEND:
@@ -6326,29 +6315,31 @@ static void SV_Maketic(void)
 	INT32 j;
 
 	for (j = 0; j < MAXNETNODES; j++)
-		if (playerpernode[j])
-		{
-			INT32 player = nodetoplayer[j];
-			if ((netcmds[maketic%TICQUEUE][player].angleturn & TICCMD_RECEIVED) == 0)
-			{ // we didn't receive this tic
-				INT32 i;
+	{
+		if (!playerpernode[j])
+			continue;
 
-				DEBFILE(va("MISS tic%4d for node %d\n", maketic, j));
+		INT32 player = nodetoplayer[j];
+		if ((netcmds[maketic%TICQUEUE][player].angleturn & TICCMD_RECEIVED) == 0)
+		{ // we didn't receive this tic
+			INT32 i;
+
+			DEBFILE(va("MISS tic%4d for node %d\n", maketic, j));
 #if defined(PARANOIA) && 0
-				CONS_Debug(DBG_NETPLAY, "Client Misstic %d\n", maketic);
+			CONS_Debug(DBG_NETPLAY, "Client Misstic %d\n", maketic);
 #endif
-				// copy the old tic
-				for (i = 0; i < playerpernode[j]; i++)
-				{
-					if (i == 0) player = nodetoplayer[j];
-					else if (i == 1) player = nodetoplayer2[j];
-					else if (i == 2) player = nodetoplayer3[j];
-					else if (i == 3) player = nodetoplayer4[j];
-					netcmds[maketic%TICQUEUE][player] = netcmds[(maketic-1)%TICQUEUE][player];
-					netcmds[maketic%TICQUEUE][player].angleturn &= ~TICCMD_RECEIVED;
-				}
+			// copy the old tic
+			for (i = 0; i < playerpernode[j]; i++)
+			{
+				if (i == 0) player = nodetoplayer[j];
+				else if (i == 1) player = nodetoplayer2[j];
+				else if (i == 2) player = nodetoplayer3[j];
+				else if (i == 3) player = nodetoplayer4[j];
+				netcmds[maketic%TICQUEUE][player] = netcmds[(maketic-1)%TICQUEUE][player];
+				netcmds[maketic%TICQUEUE][player].angleturn &= ~TICCMD_RECEIVED;
 			}
 		}
+	}
 
 	// all tic are now proceed make the next
 	maketic++;
@@ -6401,18 +6392,20 @@ boolean TryRunTics(tic_t realtics)
 	}
 #endif
 
-	if (neededtic > gametic)
+	ticking = neededtic > gametic;
+
+	if (ticking)
 	{
-		hu_stopped = false;
+		if (realtics)
+			hu_stopped = false;
 	}
 
 	if (player_joining)
 	{
-		hu_stopped = true;
+		if (realtics)
+			hu_stopped = true;
 		return false;
 	}
-
-	ticking = neededtic > gametic;
 
 	if (ticking)
 	{
@@ -6444,7 +6437,8 @@ boolean TryRunTics(tic_t realtics)
 	}
 	else
 	{
-		hu_stopped = true;
+		if (realtics)
+			hu_stopped = true;
 	}
 
 	return ticking;
@@ -6574,7 +6568,7 @@ static void UpdatePingTable(void)
 			PingUpdate();
 		// update node latency values so we can take an average later.
 		for (i = 0; i < MAXPLAYERS; i++)
-			if (playeringame[i])
+			if (playeringame[i] && playernode[i] != UINT8_MAX)
 				realpingtable[i] += GetLag(playernode[i]);
 		pingmeasurecount++;
 	}

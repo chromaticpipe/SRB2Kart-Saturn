@@ -2191,11 +2191,11 @@ static boolean oldencore = false;
 static boolean skipmusic = false;
 boolean skipintromus = false;
 
-static const char *musicexception_list[16] = {
+static const char *musicexception_list[17] = {
 	"vote", "voteea", "voteeb", "racent", "krwin",
 	"krok", "krlose", "krfail", "kbwin", "kbok",
-	"kblose", "kstart", "estart", "wait2j", "CHRSHP",
-	"CHRSHF"
+	"kblose", "kstart", "estart", "wait2j", "titles",
+	"CHRSHF", "CHRSHP" // no clue what those are tbh
 };
 
 //checks for any kind of event music like intermission, vote etc.
@@ -2207,7 +2207,7 @@ static void S_CheckEventMus(const char *newmus)
 	if (!cv_keepmusic.value)
 		return;
 
-	for (int i = 0; i < 16; i++)
+	for (int i = 0; i < 17; i++)
 		if (stricmp(music_name, musicexception_list[i]) == 0 || stricmp(newmus, musicexception_list[i]) == 0) // weird? sure! but were lucky enough newmus reflects whats being replaced
 		{
 			skipmusic = true;
@@ -2242,15 +2242,7 @@ void S_CheckMap(void)
 //
 void S_InitMapMusic(void)
 {
-	if (!cv_skipintromusic.value)
-		skipintromus = false;
-	else
-	{
-		char *maptitle = G_BuildMapTitle(gamemap);
-		skipintromus = cv_skipintromusic.value && stricmp(maptitle, "Wandering Falls") != 0; // thanks diggle!
-		if (maptitle)
-			Z_Free(maptitle);
-	}
+	skipintromus = false;
 
 	if (mapmusflags & MUSIC_RELOADRESET)
 	{
@@ -2268,6 +2260,15 @@ void S_InitMapMusic(void)
 	// lug: but not when we keep the map music lol
 	S_StopMusic();
 
+	if (cv_skipintromusic.value)
+	{
+		char *maptitle = G_BuildMapTitle(gamemap);
+		// for some reason, occasionally the title screen music doesent seem to be reset in time, so skipping the intro may make it just continue playing it instead, weird..
+		skipintromus = (stricmp(music_name, "titles") != 0) && (stricmp(maptitle, "Wandering Falls") != 0); // thanks diggle!
+		if (maptitle)
+			Z_Free(maptitle);
+	}
+
 	if (skipintromus)
 		return;
 
@@ -2276,18 +2277,18 @@ void S_InitMapMusic(void)
 	//S_ChangeMusicEx((encoremode ? "estart" : "kstart"), 0, false, mapmusposition, 0, 0);
 }
 
-void S_StartMapMusic(void)
+void S_StartMapMusic(boolean restore)
 {
 	//no need to constantly run this after race has started
 	if (leveltime > MUSICSTARTTIME)
 		return;
 
-	if (keepmusic)
+	if (keepmusic && !restore) // make sure this doesent kill the music when its called from P_RestoreMusic in some cases
 		return;
 
 	if (skipintromus)
 	{
-		if (leveltime < starttime) // dumb but i dont need this to be spammed honestly
+		if (leveltime < starttime)
 			S_ChangeMusicEx(mapmusname, mapmusflags, true, mapmusposition, 0, 0);
 		if (leveltime == MUSICSTARTTIME)
 			S_ShowMusicCredit();

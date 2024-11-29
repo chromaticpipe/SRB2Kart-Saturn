@@ -121,8 +121,6 @@ typedef struct
 	poly_t *planepoly;  // the generated convex polygon
 } extrasubsector_t;
 
-//here lies gr_vissprite
-
 // Kart features
 #define USE_FTRANSFORM_ANGLEZ
 #define USE_FTRANSFORM_MIRROR
@@ -156,7 +154,7 @@ typedef struct
 	boolean     mirrorflip;      // Encore Mode with Flipcam
 #endif
 	boolean     shearing;        // 14042019
-	angle_t     viewaiming;      // 17052019
+	float       viewaiming;      // 17052019
 } FTransform;
 
 // Transformed vector, as passed to HWR API
@@ -173,7 +171,6 @@ enum
 {
 	SHADER_NONE = -1,
 	SHADER_FLOOR = 0,
-	SHADER_SHADOW,
 	SHADER_WALL,
 	SHADER_SPRITE,
 	SHADER_MODEL,
@@ -289,9 +286,6 @@ typedef struct FSurfaceInfo FSurfaceInfo;
 
 enum hwdsetspecialstate
 {
-#ifdef USE_FBO_OGL
-	HWD_SET_FRAMEBUFFER,
-#endif
 	HWD_SET_SHADERS,
 
 	HWD_SET_TEXTUREFILTERMODE,
@@ -346,6 +340,7 @@ enum hwdscreentexture
 	HWD_SCREENTEXTURE_WIPE_END,   // destination image for the wipe/fade effect
 	HWD_SCREENTEXTURE_GENERIC1,   // underwater/heat effect, intermission background
 	HWD_SCREENTEXTURE_GENERIC2,   // palette-based colormap fade, final screen texture
+	HWD_SCREENTEXTURE_VHS,
 	NUMSCREENTEXTURES,            // (generic3 is unused if palette rendering is disabled)
 };
 typedef enum hwdscreentexture hwdscreentexture_t;

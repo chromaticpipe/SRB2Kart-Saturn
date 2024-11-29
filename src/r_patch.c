@@ -775,11 +775,11 @@ static UINT16 GetPatchPixel(patch_t *patch, INT32 x, INT32 y, boolean flip)
 #ifdef HWRENDER
 static patch_t *R_CreateHardwarePatch(patch_t *patch)
 {
-	GLPatch_t *grPatch = Z_Calloc(sizeof(GLPatch_t), PU_HWRPATCHINFO, NULL);
-	grPatch->mipmap = Z_Calloc(sizeof(GLMipmap_t), PU_HWRPATCHINFO, NULL);
-	grPatch->rawpatch = patch;
-	HWR_MakePatch(patch, grPatch, grPatch->mipmap, false);
-    return (patch_t *)grPatch;
+	GLPatch_t *glPatch = Z_Calloc(sizeof(GLPatch_t), PU_HWRPATCHINFO, NULL);
+	glPatch->mipmap = Z_Calloc(sizeof(GLMipmap_t), PU_HWRPATCHINFO, NULL);
+	glPatch->rawpatch = patch;
+	HWR_MakePatch(patch, glPatch, glPatch->mipmap, false);
+    return (patch_t *)glPatch;
 }
 #endif
 
@@ -842,8 +842,8 @@ patch_t *Patch_GetRotatedSprite(spriteframe_t *sprite, size_t frame, size_t spri
 		}
 		else
 		{
-			xpivot = patch->leftoffset;
-			ypivot = patch->height / 2;
+			xpivot = SHORT(patch->leftoffset);
+			ypivot = SHORT(patch->height) / 2;
 		}
 
 		RotatedPatch_DoRotation(rotsprite, patch, rotationangle, xpivot, ypivot, flip);
@@ -902,9 +902,9 @@ void RotatedPatch_DoRotation(rotsprite_t *rotsprite, patch_t *patch, INT32 angle
 	size_t size;
 	INT32 bflip = (flip != 0x00);
 
-	INT32 width = patch->width;
-	INT32 height = patch->height;
-	INT32 leftoffset = patch->leftoffset;
+	INT32 width = SHORT(patch->width);
+	INT32 height = SHORT(patch->height);
+	INT32 leftoffset = SHORT(patch->leftoffset);
 	INT32 newwidth, newheight;
 
 	fixed_t ca = rollcosang[angle];
@@ -975,7 +975,7 @@ void RotatedPatch_DoRotation(rotsprite_t *rotsprite, patch_t *patch, INT32 angle
 	}
 
 	ox = (newwidth / 2) + (leftoffset - xpivot);
-	oy = (newheight / 2) + (patch->topoffset - ypivot);
+	oy = (newheight / 2) + (SHORT(patch->topoffset) - ypivot);
 	width = (maxx - minx);
 	height = (maxy - miny);
 

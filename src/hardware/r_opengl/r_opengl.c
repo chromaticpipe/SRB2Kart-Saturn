@@ -83,9 +83,6 @@ static  FBITFIELD   CurrentPolyFlags;
 static  FTextureInfo *gr_cachetail = NULL;
 static  FTextureInfo *gr_cachehead = NULL;
 
-static RGBA_t *textureBuffer = NULL;
-static size_t textureBufferSize = 0;
-
 // Linked list of all lighttables.
 static LTListItem *LightTablesTail = NULL;
 static LTListItem *LightTablesHead = NULL;
@@ -1157,10 +1154,6 @@ void Flush(void)
 
 	gr_cachetail = gr_cachehead = NULL; //Hurdler: well, gr_cachehead is already NULL
 	tex_downloaded = 0;
-
-	free(textureBuffer);
-	textureBuffer = NULL;
-	textureBufferSize = 0;
 }
 
 // -----------------+
@@ -1497,34 +1490,22 @@ EXPORT void HWRAPI(SetBlend) (FBITFIELD PolyFlags)
 	CurrentPolyFlags = PolyFlags;
 }
 
-static void AllocTextureBuffer(FTextureInfo *pTexInfo)
-{
-	size_t size = pTexInfo->width * pTexInfo->height;
-	if (size > textureBufferSize)
-	{
-		textureBuffer = realloc(textureBuffer, size * sizeof(RGBA_t));
-		if (textureBuffer == NULL)
-			I_Error("AllocTextureBuffer: out of memory allocating %s bytes", sizeu1(size * sizeof(RGBA_t)));
-		textureBufferSize = size;
-	}
-}
-
 // -----------------+
 // UpdateTexture    : Updates texture data.
 // -----------------+
 EXPORT void HWRAPI(UpdateTexture) (FTextureInfo *pTexInfo)
 {
-	// Upload a texture
+	// Download a mipmap
 	GLuint num = pTexInfo->downloaded;
 	boolean update = true;
+
+	static RGBA_t   tex[2048*2048];
+	const GLubyte *pImgData = (const GLubyte *)pTexInfo->data;
+	const GLvoid   *ptex = tex;
 
 	INT32 w = pTexInfo->width, h = pTexInfo->height;
 	INT32 i, j;
 
-	const GLubyte *pImgData = (const GLubyte *)pTexInfo->data;
-	const GLvoid *ptex = NULL;
-	RGBA_t *tex = NULL;
-	
 	// Generate a new texture name.
 	if (!num)
 	{
@@ -1537,9 +1518,6 @@ EXPORT void HWRAPI(UpdateTexture) (FTextureInfo *pTexInfo)
 
 	if ((pTexInfo->format == GL_TEXFMT_P_8) || (pTexInfo->format == GL_TEXFMT_AP_88))
 	{
-		AllocTextureBuffer(pTexInfo);
-		ptex = tex = textureBuffer;
-
 		for (j = 0; j < h; j++)
 		{
 			for (i = 0; i < w; i++)
@@ -1579,9 +1557,6 @@ EXPORT void HWRAPI(UpdateTexture) (FTextureInfo *pTexInfo)
 	}
 	else if (pTexInfo->format == GL_TEXFMT_ALPHA_INTENSITY_88)
 	{
-		AllocTextureBuffer(pTexInfo);
-		ptex = tex = textureBuffer;
-
 		for (j = 0; j < h; j++)
 		{
 			for (i = 0; i < w; i++)
@@ -1597,9 +1572,6 @@ EXPORT void HWRAPI(UpdateTexture) (FTextureInfo *pTexInfo)
 	}
 	else if (pTexInfo->format == GL_TEXFMT_ALPHA_8) // Used for fade masks
 	{
-		AllocTextureBuffer(pTexInfo);
-		ptex = tex = textureBuffer;
-
 		for (j = 0; j < h; j++)
 		{
 			for (i = 0; i < w; i++)

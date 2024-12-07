@@ -524,7 +524,7 @@ void R_LoadTextures(void)
 			patch->wad = (UINT16)w;
 			patch->lump = texstart + j;
 
-			Z_Free(patchlump);
+			Z_Unlock(patchlump);
 
 			k = 1;
 			while (k << 1 <= texture->width)

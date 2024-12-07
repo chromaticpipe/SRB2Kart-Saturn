@@ -497,7 +497,6 @@ static void FreeMipmapColormap(INT32 patchnum, void *patch)
 		if (next->data)
 			Z_Free(next->data);
 		next->data = NULL;
-		HWD.pfnDeleteTexture(next);
 
 		// Free the old colormap mipmap from memory.
 		free(next);

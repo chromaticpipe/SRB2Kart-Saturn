@@ -910,7 +910,7 @@ EXPORT void HWRAPI(UnSetShader) (void)
 static void SetNoTexture(void)
 {
 	// Disable texture.
-	if (tex_downloaded != NOTEXTURE_NUM)
+	if (tex_downloaded != NOTEXTURE_NUM && !currently_batching)
 	{
 		if (NOTEXTURE_NUM == 0)
 			pglGenTextures(1, &NOTEXTURE_NUM);
@@ -1700,7 +1700,8 @@ EXPORT void HWRAPI(SetTexture) (FTextureInfo *pTexInfo)
 	{
 		if (pTexInfo->downloaded != tex_downloaded)
 		{
-			pglBindTexture(GL_TEXTURE_2D, pTexInfo->downloaded);
+			if (!currently_batching)
+				pglBindTexture(GL_TEXTURE_2D, pTexInfo->downloaded);
 			tex_downloaded = pTexInfo->downloaded;
 		}
 	}

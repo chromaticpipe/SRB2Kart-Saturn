@@ -336,8 +336,8 @@ static void HWR_GenerateTexture(INT32 texnum, GLMapTexture_t *gltex, boolean noe
 	else
 		gltex->mipmap.flags = TF_CHROMAKEYED | TF_WRAPXY;
 
-	gltex->mipmap.width = (UINT16)texture->width;
-	gltex->mipmap.height = (UINT16)texture->height;
+	gltex->mipmap.width = SHORT(texture->width);
+	gltex->mipmap.height = SHORT(texture->height);
 
 	if (skyspecial)
 		gltex->mipmap.format = GL_TEXFMT_RGBA; // that skyspecial code below assumes this format ...
@@ -421,6 +421,7 @@ void HWR_MakePatch (patch_t *patch, GLPatch_t *glPatch, GLMipmap_t *glMipmap, bo
 
 		// no wrap around, no chroma key
 		glMipmap->flags = 0;
+
 		// setup the texture info
 		glMipmap->format = patchformat;
 	}

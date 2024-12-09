@@ -431,6 +431,11 @@ endif
 
 	include blua/Makefile.cfg
 
+
+ifdef NOLUAGLIB
+	OPTS+=-DNOLUAGLIB
+endif
+
 ifdef NOMD5
 	OPTS+=-DNOMD5
 else

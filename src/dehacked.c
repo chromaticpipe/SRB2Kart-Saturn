@@ -44,7 +44,9 @@
 
 #include "m_cond.h"
 
+#ifndef NOLUAGLIB
 #define REQUIRE_MATHLIB_GUID "{748fcbc8-6480-4013-ac4e-7afce6cab766}"
+#endif
 
 // Free slot names
 // The crazy word-reading stuff uses these.
@@ -464,8 +466,9 @@ static void readfreeslots(MYFILE *f)
 					strncpy(sprnames[i],word,4);
 					//sprnames[i][4] = 0;
 					CONS_Printf("Sprite SPR_%s allocated.\n",word);
-
+#ifndef NOLUAGLIB
 					LUA_InvalidateMathlibCache(va("SPR_%s", word));
+#endif
 
 					used_spr[(i-SPR_FIRSTFREESLOT)/8] |= 1<<(i%8); // Okay, this sprite slot has been named now.
 					break;
@@ -478,9 +481,9 @@ static void readfreeslots(MYFILE *f)
 				for (i = 0; i < NUMSTATEFREESLOTS; i++)
 					if (!FREE_STATES[i]) {
 						CONS_Printf("State S_%s allocated.\n",word);
-
+#ifndef NOLUAGLIB
 						LUA_InvalidateMathlibCache(va("S_%s", word));
-
+#endif
 						FREE_STATES[i] = Z_Malloc(strlen(word)+1, PU_STATIC, NULL);
 						strcpy(FREE_STATES[i],word);
 						freeslotusage[0][0]++;
@@ -495,9 +498,9 @@ static void readfreeslots(MYFILE *f)
 				for (i = 0; i < NUMMOBJFREESLOTS; i++)
 					if (!FREE_MOBJS[i]) {
 						CONS_Printf("MobjType MT_%s allocated.\n",word);
-
+#ifndef NOLUAGLIB
 						LUA_InvalidateMathlibCache(va("MT_%s", word));
-
+#endif
 						FREE_MOBJS[i] = Z_Malloc(strlen(word)+1, PU_STATIC, NULL);
 						strcpy(FREE_MOBJS[i],word);
 						freeslotusage[1][0]++;
@@ -8369,9 +8372,11 @@ static inline int lib_freeslot(lua_State *L)
 				// Found a free slot!
 				CONS_Printf("Sprite SPR_%s allocated.\n",word);
 
+#ifndef NOLUAGLIB
 				lua_pushcfunction(L, lua_glib_invalidate_cache);
 				lua_pushfstring(L, "SPR_%s", word);
 				lua_call(L, 1, 0);
+#endif
 
 				strncpy(sprnames[j],word,4);
 				//sprnames[j][4] = 0;
@@ -8390,9 +8395,11 @@ static inline int lib_freeslot(lua_State *L)
 				if (!FREE_STATES[i]) {
 					CONS_Printf("State S_%s allocated.\n",word);
 
+#ifndef NOLUAGLIB
 					lua_pushcfunction(L, lua_glib_invalidate_cache);
 					lua_pushfstring(L, "S_%s", word);
 					lua_call(L, 1, 0);
+#endif
 
 					FREE_STATES[i] = Z_Malloc(strlen(word)+1, PU_STATIC, NULL);
 					strcpy(FREE_STATES[i],word);
@@ -8411,9 +8418,11 @@ static inline int lib_freeslot(lua_State *L)
 				if (!FREE_MOBJS[i]) {
 					CONS_Printf("MobjType MT_%s allocated.\n",word);
 
+#ifndef NOLUAGLIB
 					lua_pushcfunction(L, lua_glib_invalidate_cache);
 					lua_pushfstring(L, "MT_%s", word);
 					lua_call(L, 1, 0);
+#endif
 
 					FREE_MOBJS[i] = Z_Malloc(strlen(word)+1, PU_STATIC, NULL);
 					strcpy(FREE_MOBJS[i],word);
@@ -8457,6 +8466,7 @@ static int lib_dummysuper(lua_State *L)
 	return luaL_error(L, "Can't call super() outside of hardcode-replacing A_Action functions being called by state changes!"); // convoluted, I know. @_@;;
 }
 
+#ifndef NOLUAGLIB
 FUNCINLINE static ATTRINLINE int lib_getenum(lua_State *L)
 {
 	const int UV_MATHLIB = lua_upvalueindex(1);
@@ -9230,6 +9240,457 @@ int LUA_EnumLib(lua_State *L)
     // }
 	return 0;
 }
+#else
+FUNCINLINE static ATTRINLINE int lib_getenum(lua_State *L)
+{
+	const char *word, *p;
+	fixed_t i;
+	boolean mathlib = lua_toboolean(L, lua_upvalueindex(1));
+	if (lua_type(L,2) != LUA_TSTRING)
+		return 0;
+	word = lua_tostring(L,2);
+	if (strlen(word) == 1) { // Assume sprite frame if length 1.
+		if (*word >= 'A' && *word <= '~')
+		{
+			lua_pushinteger(L, *word-'A');
+			return 1;
+		}
+		if (mathlib) return luaL_error(L, "constant '%s' could not be parsed.\n", word);
+		return 0;
+	}
+	else if (fastncmp("MF_", word, 3)) {
+		p = word+3;
+		for (i = 0; MOBJFLAG_LIST[i]; i++)
+			if (fastcmp(p, MOBJFLAG_LIST[i])) {
+				lua_pushinteger(L, ((lua_Integer)1<<i));
+				return 1;
+			}
+		if (mathlib) return luaL_error(L, "mobjflag '%s' could not be found.\n", word);
+		return 0;
+	}
+	else if (fastncmp("MF2_", word, 4)) {
+		p = word+4;
+		for (i = 0; MOBJFLAG2_LIST[i]; i++)
+			if (fastcmp(p, MOBJFLAG2_LIST[i])) {
+				lua_pushinteger(L, ((lua_Integer)1<<i));
+				return 1;
+			}
+		if (mathlib) return luaL_error(L, "mobjflag2 '%s' could not be found.\n", word);
+		return 0;
+	}
+	else if (fastncmp("MFE_", word, 4)) {
+		p = word+4;
+		for (i = 0; MOBJEFLAG_LIST[i]; i++)
+			if (fastcmp(p, MOBJEFLAG_LIST[i])) {
+				lua_pushinteger(L, ((lua_Integer)1<<i));
+				return 1;
+			}
+		if (mathlib) return luaL_error(L, "mobjeflag '%s' could not be found.\n", word);
+		return 0;
+	}
+	else if (fastncmp("MTF_", word, 4)) {
+		p = word+4;
+		for (i = 0; i < 4; i++)
+			if (MAPTHINGFLAG_LIST[i] && fastcmp(p, MAPTHINGFLAG_LIST[i])) {
+				lua_pushinteger(L, ((lua_Integer)1<<i));
+				return 1;
+			}
+		if (mathlib) return luaL_error(L, "mapthingflag '%s' could not be found.\n", word);
+		return 0;
+	}
+	else if (fastncmp("PF_", word, 3)) {
+		p = word+3;
+		for (i = 0; PLAYERFLAG_LIST[i]; i++)
+			if (fastcmp(p, PLAYERFLAG_LIST[i])) {
+				lua_pushinteger(L, ((lua_Integer)1<<i));
+				return 1;
+			}
+		if (fastcmp(p, "FULLSTASIS"))
+		{
+			lua_pushinteger(L, (lua_Integer)PF_FULLSTASIS);
+			return 1;
+		}
+		if (mathlib) return luaL_error(L, "playerflag '%s' could not be found.\n", word);
+		return 0;
+	}
+	else if (fastncmp("ML_", word, 3)) {
+		p = word+3;
+		for (i = 0; i < 16; i++)
+			if (ML_LIST[i] && fastcmp(p, ML_LIST[i])) {
+				lua_pushinteger(L, ((lua_Integer)1<<i));
+				return 1;
+			}
+		if (fastcmp(p, "NETONLY"))
+		{
+			lua_pushinteger(L, (lua_Integer)ML_NETONLY);
+			return 1;
+		}
+		if (mathlib) return luaL_error(L, "linedef flag '%s' could not be found.\n", word);
+		return 0;
+	}
+	else if (fastncmp("S_",word,2)) {
+		p = word+2;
+		for (i = 0; i < NUMSTATEFREESLOTS; i++) {
+			if (!FREE_STATES[i])
+				break;
+			if (fastcmp(p, FREE_STATES[i])) {
+				lua_pushinteger(L, S_FIRSTFREESLOT+i);
+				return 1;
+			}
+		}
+		for (i = 0; i < S_FIRSTFREESLOT; i++)
+			if (fastcmp(p, STATE_LIST[i]+2)) {
+				lua_pushinteger(L, i);
+				return 1;
+			}
+		return luaL_error(L, "state '%s' does not exist.\n", word);
+	}
+	else if (fastncmp("MT_",word,3)) {
+		p = word+3;
+		for (i = 0; i < NUMMOBJFREESLOTS; i++) {
+			if (!FREE_MOBJS[i])
+				break;
+			if (fastcmp(p, FREE_MOBJS[i])) {
+				lua_pushinteger(L, MT_FIRSTFREESLOT+i);
+				return 1;
+			}
+		}
+		for (i = 0; i < MT_FIRSTFREESLOT; i++)
+			if (fastcmp(p, MOBJTYPE_LIST[i]+3)) {
+				lua_pushinteger(L, i);
+				return 1;
+			}
+		return luaL_error(L, "mobjtype '%s' does not exist.\n", word);
+	}
+	else if (fastncmp("SPR_",word,4)) {
+		p = word+4;
+		for (i = 0; i < NUMSPRITES; i++)
+			if (!sprnames[i][4] && fastncmp(p,sprnames[i],4)) {
+				lua_pushinteger(L, i);
+				return 1;
+			}
+		if (mathlib) return luaL_error(L, "sprite '%s' could not be found.\n", word);
+		return 0;
+	}
+	else if (!mathlib && fastncmp("sfx_",word,4)) {
+		p = word+4;
+		for (i = 0; i < NUMSFX; i++)
+			if (S_sfx[i].name && fastcmp(p, S_sfx[i].name)) {
+				lua_pushinteger(L, i);
+				return 1;
+			}
+		return 0;
+	}
+	else if (mathlib && fastncmp("SFX_",word,4)) { // SOCs are ALL CAPS!
+		p = word+4;
+		for (i = 0; i < NUMSFX; i++)
+			if (S_sfx[i].name && fasticmp(p, S_sfx[i].name)) {
+				lua_pushinteger(L, i);
+				return 1;
+			}
+		return luaL_error(L, "sfx '%s' could not be found.\n", word);
+	}
+	else if (mathlib && fastncmp("DS",word,2)) {
+		p = word+2;
+		for (i = 0; i < NUMSFX; i++)
+			if (S_sfx[i].name && fasticmp(p, S_sfx[i].name)) {
+				lua_pushinteger(L, i);
+				return 1;
+			}
+		if (mathlib) return luaL_error(L, "sfx '%s' could not be found.\n", word);
+		return 0;
+	}
+#ifdef MUSICSLOT_COMPATIBILITY
+	else if (!mathlib && fastncmp("mus_",word,4)) {
+		p = word+4;
+		if ((i = get_mus(p, false)) == 0)
+			return 0;
+		lua_pushinteger(L, i);
+		return 1;
+	}
+	else if (mathlib && fastncmp("MUS_",word,4)) { // SOCs are ALL CAPS!
+		p = word+4;
+		if ((i = get_mus(p, false)) == 0)
+			return luaL_error(L, "music '%s' could not be found.\n", word);
+		lua_pushinteger(L, i);
+		return 1;
+	}
+	else if (mathlib && (fastncmp("O_",word,2) || fastncmp("D_",word,2))) {
+		p = word+2;
+		if ((i = get_mus(p, false)) == 0)
+			return luaL_error(L, "music '%s' could not be found.\n", word);
+		lua_pushinteger(L, i);
+		return 1;
+	}
+#endif
+	else if (!mathlib && fastncmp("pw_",word,3)) {
+		p = word+3;
+		for (i = 0; i < NUMPOWERS; i++)
+			if (fasticmp(p, POWERS_LIST[i])) {
+				lua_pushinteger(L, i);
+				return 1;
+			}
+		return 0;
+	}
+	else if (mathlib && fastncmp("PW_",word,3)) { // SOCs are ALL CAPS!
+		p = word+3;
+		for (i = 0; i < NUMPOWERS; i++)
+			if (fastcmp(p, POWERS_LIST[i])) {
+				lua_pushinteger(L, i);
+				return 1;
+			}
+		return luaL_error(L, "power '%s' could not be found.\n", word);
+	}
+	else if (!mathlib && fastncmp("k_",word,2)) {
+		p = word+2;
+		for (i = 0; i < NUMKARTSTUFF; i++)
+			if (fasticmp(p, KARTSTUFF_LIST[i])) {
+				lua_pushinteger(L, i);
+				return 1;
+			}
+		return 0;
+	}
+	else if (mathlib && fastncmp("K_",word,2)) { // SOCs are ALL CAPS!
+		p = word+2;
+		for (i = 0; i < NUMKARTSTUFF; i++)
+			if (fastcmp(p, KARTSTUFF_LIST[i])) {
+				lua_pushinteger(L, i);
+				return 1;
+			}
+		return luaL_error(L, "kartstuff '%s' could not be found.\n", word);
+	}
+	else if (fastncmp("HUD_",word,4)) {
+		p = word+4;
+		for (i = 0; i < NUMHUDITEMS; i++)
+			if (fastcmp(p, HUDITEMS_LIST[i])) {
+				lua_pushinteger(L, i);
+				return 1;
+			}
+		if (mathlib) return luaL_error(L, "huditem '%s' could not be found.\n", word);
+		return 0;
+	}
+	else if (fastncmp("SKINCOLOR_",word,10)) {
+		p = word+10;
+		for (i = 0; i < MAXTRANSLATIONS; i++)
+			if (fastcmp(p, COLOR_ENUMS[i])) {
+				lua_pushinteger(L, i);
+				return 1;
+			}
+		if (mathlib) return luaL_error(L, "skincolor '%s' could not be found.\n", word);
+		return 0;
+	}
+	else if (!mathlib && fastncmp("A_",word,2)) {
+		char *caps;
+		// Try to get a Lua action first.
+		/// \todo Push a closure that sets superactions[] and superstack.
+		lua_getfield(L, LUA_REGISTRYINDEX, LREG_ACTIONS);
+		// actions are stored in all uppercase.
+		caps = Z_StrDup(word);
+		strupr(caps);
+		lua_getfield(L, -1, caps);
+		Z_Free(caps);
+		if (!lua_isnil(L, -1))
+			return 1; // Success! :D That was easy.
+		// Welp, that failed.
+		lua_pop(L, 2); // pop nil and LREG_ACTIONS
+
+		// Hardcoded actions as callable Lua functions!
+		// Retrieving them from this metatable allows them to be case-insensitive!
+		for (i = 0; actionpointers[i].name; i++)
+			if (fasticmp(word, actionpointers[i].name)) {
+				// push lib_action as a C closure with the actionf_t* as an upvalue.
+				lua_pushlightuserdata(L, &actionpointers[i].action);
+				lua_pushcclosure(L, lib_action, 1);
+				return 1;
+			}
+		return 0;
+	}
+	else if (!mathlib && fastcmp("super",word))
+	{
+		if (!superstack)
+		{
+			lua_pushcfunction(L, lib_dummysuper);
+			return 1;
+		}
+		for (i = 0; actionpointers[i].name; i++)
+			if (fasticmp(superactions[superstack-1], actionpointers[i].name)) {
+				lua_pushlightuserdata(L, &actionpointers[i].action);
+				lua_pushcclosure(L, lib_action, 1);
+				return 1;
+			}
+		return 0;
+	}
+
+	for (i = 0; INT_CONST[i].n; i++)
+		if (fastcmp(word,INT_CONST[i].n)) {
+			lua_pushinteger(L, INT_CONST[i].v);
+			return 1;
+		}
+
+	if (mathlib) return luaL_error(L, "constant '%s' could not be parsed.\n", word);
+
+	// DYNAMIC variables too!!
+
+	if (fastcmp(word,"gamemap")) {
+		lua_pushinteger(L, gamemap);
+		return 1;
+	} else if (fastcmp(word,"maptol")) {
+		lua_pushinteger(L, maptol);
+		return 1;
+	} else if (fastcmp(word,"ultimatemode")) {
+		lua_pushboolean(L, ultimatemode != 0);
+		return 1;
+	} else if (fastcmp(word,"mariomode")) {
+		lua_pushboolean(L, false);
+		return 1;
+	} else if (fastcmp(word,"twodlevel")) {
+		lua_pushboolean(L, false);
+		return 1;
+	} else if (fastcmp(word,"circuitmap")) {
+		lua_pushboolean(L, circuitmap);
+		return 1;
+	} else if (fastcmp(word,"netgame")) {
+		lua_pushboolean(L, netgame);
+		return 1;
+	} else if (fastcmp(word,"multiplayer")) {
+		lua_pushboolean(L, multiplayer);
+		return 1;
+	} else if (fastcmp(word,"modeattacking")) {
+		lua_pushboolean(L, modeattacking);
+		return 1;
+	} else if (fastcmp(word,"splitscreen")) {
+		lua_pushinteger(L, splitscreen);
+		return 1;
+	} else if (fastcmp(word,"gamecomplete")) {
+		lua_pushboolean(L, gamecomplete);
+		return 1;
+	} else if (fastcmp(word,"devparm")) {
+		lua_pushboolean(L, devparm);
+		return 1;
+	} else if (fastcmp(word,"modifiedgame")) {
+		lua_pushboolean(L, modifiedgame && !savemoddata);
+		return 1;
+	} else if (fastcmp(word,"majormods")) {
+		lua_pushboolean(L, majormods);
+		return 1;
+	} else if (fastcmp(word,"menuactive")) {
+		lua_pushboolean(L, menuactive);
+		return 1;
+	} else if (fastcmp(word,"paused")) {
+		lua_pushboolean(L, paused);
+		return 1;
+	} else if (fastcmp(word,"gametype")) {
+		lua_pushinteger(L, gametype);
+		return 1;
+	} else if (fastcmp(word,"leveltime")) {
+		lua_pushinteger(L, leveltime);
+		return 1;
+	} else if (fastcmp(word,"defrosting")) {
+		lua_pushinteger(L, hook_defrosting);
+		return 1;
+	} else if (fastcmp(word,"curWeather")) {
+		lua_pushinteger(L, curWeather);
+		return 1;
+	} else if (fastcmp(word,"globalweather")) {
+		lua_pushinteger(L, globalweather);
+		return 1;
+	} else if (fastcmp(word,"levelskynum")) {
+		lua_pushinteger(L, levelskynum);
+		return 1;
+	} else if (fastcmp(word,"globallevelskynum")) {
+		lua_pushinteger(L, globallevelskynum);
+		return 1;
+	} else if (fastcmp(word,"mapmusname")) {
+		lua_pushstring(L, mapmusname);
+		return 1;
+	} else if (fastcmp(word,"mapmusflags")) {
+		lua_pushinteger(L, mapmusflags);
+		return 1;
+	} else if (fastcmp(word,"mapmusposition")) {
+		lua_pushinteger(L, mapmusposition);
+		return 1;
+	} else if (fastcmp(word,"server")) {
+		if ((!multiplayer || !(netgame || demo.playback)) && !playeringame[serverplayer])
+			return 0;
+		LUA_PushUserdata(L, &players[serverplayer], META_PLAYER);
+		return 1;
+	} else if (fastcmp(word,"consoleplayer")) {	// Player controlling the console, basically our local player
+		if (consoleplayer < 0 || !playeringame[consoleplayer])
+			return 0;
+		LUA_PushUserdata(L, &players[consoleplayer], META_PLAYER);
+		return 1;
+	} else if (fastcmp(word,"isserver")) {
+		lua_pushboolean(L, server);
+		return 1;
+	} else if (fastcmp(word, "isdedicatedserver")) {
+		lua_pushboolean(L, dedicated);
+		return 1;
+	} else if (fastcmp(word,"gravity")) {
+		lua_pushinteger(L, gravity);
+		return 1;
+	} else if (fastcmp(word,"VERSIONSTRING")) {
+		lua_pushstring(L, VERSIONSTRING);
+		return 1;
+	} else if (fastcmp(word,"gamespeed")) {
+		lua_pushinteger(L, gamespeed);
+		return 1;
+	} else if (fastcmp(word,"encoremode")) {
+		lua_pushboolean(L, encoremode);
+		return 1;
+	} else if (fastcmp(word,"franticitems")) {
+		lua_pushboolean(L, franticitems);
+		return 1;
+	} else if (fastcmp(word,"comeback")) {
+		lua_pushboolean(L, comeback);
+		return 1;
+	} else if (fastcmp(word,"wantedcalcdelay")) {
+		lua_pushinteger(L, wantedcalcdelay);
+		return 1;
+	} else if (fastcmp(word,"indirectitemcooldown")) {
+		lua_pushinteger(L, indirectitemcooldown);
+		return 1;
+	} else if (fastcmp(word,"hyubgone")) {
+		lua_pushinteger(L, hyubgone);
+		return 1;
+	} else if (fastcmp(word,"thwompsactive")) {
+		lua_pushboolean(L, thwompsactive);
+		return 1;
+	} else if (fastcmp(word,"spbplace")) {
+		lua_pushinteger(L, spbplace);
+		return 1;
+	} else if (fastcmp(word,"mapobjectscale")) {
+		lua_pushinteger(L, mapobjectscale);
+		return 1;
+	} else if (fastcmp(word,"numlaps")) {
+		lua_pushinteger(L, cv_numlaps.value);
+		return 1;
+	} else if (fastcmp(word,"racecountdown")) {
+		lua_pushinteger(L, racecountdown);
+		return 1;
+	} else if (fastcmp(word,"exitcountdown")) {
+		lua_pushinteger(L, exitcountdown);	// This name is pretty dumb. Hence why we'll prefer more descriptive names at least in Lua...
+		return 1;
+	} else if (fastcmp(word,"replayplayback")) {
+		lua_pushboolean(L, demo.playback);
+		return 1;
+	}
+	return 0;
+}
+
+int LUA_EnumLib(lua_State *L)
+{
+	if (lua_gettop(L) == 0)
+		lua_pushboolean(L, 0);
+
+	// Set the global metatable
+	lua_createtable(L, 0, 1);
+	lua_pushvalue(L, 1); // boolean passed to LUA_EnumLib as first argument.
+	lua_pushcclosure(L, lib_getenum, 1);
+	lua_setfield(L, -2, "__index");
+	lua_setmetatable(L, LUA_GLOBALSINDEX);
+	return 0;
+}
+#endif
 
 int LUA_SOCLib(lua_State *L)
 {

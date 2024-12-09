@@ -7,6 +7,8 @@
 #include "doomdef.h"
 #include "lua_script.h"
 
+#ifndef NOLUAGLIB
+
 /**
  * Feed a list of items to append to the enum cache.
  * @param L[1] The table of tiems to add to the enum cache.
@@ -177,4 +179,5 @@ int lua_glib_setter_bool(lua_State *L);
     _LUA_GLIB_DECL_PSETTER(boolean, bool);
 #undef _LUA_GLIB_DECL_PSETTER
 
+#endif //#ifndef NOLUAGLIB
 #endif

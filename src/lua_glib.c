@@ -1,5 +1,7 @@
 #include "lua_glib.h"
 
+#ifndef NOLUAGLIB
+
 #define GLIB_DATABASE_GUID "{cf75e032-00c8-4887-b15f-87b755784ad3}"
     #define GLIB_DATABASE_GETTERS "getters"     /* Table of getter functions. */
     #define GLIB_DATABASE_SETTERS "setters"     /* Table of setter functions. */
@@ -394,3 +396,5 @@ int lua_glib_getter_ptr(lua_State *L)
     lua_pushvalue(L, lua_upvalueindex(1));
     return 1;
 }
+
+#endif //#ifndef NOLUAGLIB

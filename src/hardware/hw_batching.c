@@ -265,9 +265,9 @@ void HWR_RenderBatches(void)
 	// sort polygons
 	PS_START_TIMING(ps_hw_batchsorttime);
 	if (cv_glshaders.value && gl_shadersavailable)
-		qs22j(polygonArraySorted, polygonArraySize, sizeof(PolygonArrayEntry *), comparePolygons);
+		qsort(polygonArraySorted, polygonArraySize, sizeof(PolygonArrayEntry *), comparePolygons);
 	else
-		qs22j(polygonArraySorted, polygonArraySize, sizeof(PolygonArrayEntry *), comparePolygonsNoShaders);
+		qsort(polygonArraySorted, polygonArraySize, sizeof(PolygonArrayEntry *), comparePolygonsNoShaders);
 	PS_STOP_TIMING(ps_hw_batchsorttime);
 
 	// sort order
